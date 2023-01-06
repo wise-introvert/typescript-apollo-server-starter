@@ -1,4 +1,8 @@
+import { config } from "dotenv";
+config();
+
 import { ApolloServer } from "@apollo/server";
+import { pick } from "lodash";
 import { startStandaloneServer } from "@apollo/server/standalone";
 
 import { resolvers } from "./resolvers";
@@ -26,12 +30,8 @@ const main = async (): Promise<string> => {
   const { url } = await startStandaloneServer(server, {
     context: async () => {
       const { cache } = server;
-      console.log("creating context...");
       const postsAPI: PostsAPI = new PostsAPI({ cache });
       const posts: Post[] = await postsAPI.getPosts();
-      console.log({
-        posts,
-      });
       return {
         dataSources: {
           postsAPI,
