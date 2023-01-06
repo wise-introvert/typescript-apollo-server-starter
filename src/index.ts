@@ -3,10 +3,17 @@ import { startStandaloneServer } from "@apollo/server/standalone";
 
 import { resolvers } from "./resolvers";
 import { typeDefs } from "./typeDefs";
+import { PostsAPI, Post } from "./posts-api";
+
+export interface ContextValue {
+  dataSources: {
+    postsAPI: PostsAPI;
+  };
+}
 
 // The ApolloServer constructor requires two parameters: your schema
 // definition and your set of resolvers.
-const server = new ApolloServer({
+const server = new ApolloServer<ContextValue>({
   typeDefs,
   resolvers,
 });
@@ -16,11 +23,26 @@ const server = new ApolloServer({
 //  2. installs your ApolloServer instance as middleware
 //  3. prepares your app to handle incoming requests
 const main = async (): Promise<string> => {
-  const { url } = await startStandaloneServer(server, { listen: { port: 4000 } });
+  const { url } = await startStandaloneServer(server, {
+    context: async () => {
+      const { cache } = server;
+      console.log("creating context...");
+      const postsAPI: PostsAPI = new PostsAPI({ cache });
+      const posts: Post[] = await postsAPI.getPosts();
+      console.log({
+        posts,
+      });
+      return {
+        dataSources: {
+          postsAPI,
+        },
+      };
+    },
+  });
 
   return url;
-}
+};
 
 main().then((url: string): void => {
   console.log(`🚀 Server listening at: ${url}`);
-})
+});

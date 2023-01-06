@@ -1,8 +1,10 @@
-import { books, type Book } from "./data";
+import { Post } from "./posts-api";
+import { ContextValue } from ".";
 
 export const resolvers = {
   Query: {
-    books: async (): Promise<Book[]> =>
-      new Promise((resolve): void => resolve(books)),
+    posts: async (_, __, context: ContextValue): Promise<Post[]> => {
+      return context.dataSources.postsAPI.getPosts();
+    },
   },
 };
